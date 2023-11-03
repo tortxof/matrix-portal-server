@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "matrix-portal-server"
+version = "0.1.0"
+description = ""
+authors = ["Daniel Jones <tortxof@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+skyfield = "^1.46"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
