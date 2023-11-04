@@ -76,7 +76,9 @@ def get_next_sun_event(event_index=0):
     times, events = almanac.find_discrete(t_now, t_now_plus, get_sun_up)
 
     sun_event_str = "SR" if events[event_index] else "SS"
-    sun_event_time = times[event_index].astimezone(timezone)
+    sun_event_time = times[event_index].astimezone(timezone) + datetime.timedelta(
+        seconds=30
+    )
     return "%s %02d:%02d" % (sun_event_str, sun_event_time.hour, sun_event_time.minute)
 
 
@@ -95,7 +97,9 @@ def get_next_moon_event(event_index=0):
     times, events = almanac.find_discrete(t_now, t_now_plus, get_moon_up)
 
     moon_event_str = "MR" if events[event_index] else "MS"
-    moon_event_time = times[event_index].astimezone(timezone)
+    moon_event_time = times[event_index].astimezone(timezone) + datetime.timedelta(
+        seconds=30
+    )
     return "%s %02d:%02d" % (
         moon_event_str,
         moon_event_time.hour,
