@@ -129,8 +129,14 @@ def get_moon_phase():
     now = datetime.datetime.now().astimezone()
     ts = load.timescale()
     t_now = ts.from_datetime(now)
-    phase = almanac.moon_phase(EPH, t_now)
-    return "MPA %d" % phase.degrees
+    angle = int(almanac.moon_phase(EPH, t_now).degrees)
+    angle_options = [0, 90, 180, 270, 360]
+    closest_match = (
+        min(angle_options, key=lambda angle_option: abs(angle_option - angle)) % 360
+    )
+    return {0: "New Moon", 90: "1st Qtr Mn", 180: "Full Moon", 270: "Lst Qtr Mn"}[
+        closest_match
+    ]
 
 
 @app.get("/time")
