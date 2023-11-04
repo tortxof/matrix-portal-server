@@ -125,8 +125,8 @@ def get_moon_phase():
     now = datetime.datetime.now().astimezone()
     ts = load.timescale()
     t_now = ts.from_datetime(now)
-    moon_phase_index = almanac.moon_phases(EPH)(t_now)
-    return ["New Moon", "1st Qtr Mn", "Full Moon", "Lst Qtr Mn"][moon_phase_index]
+    phase = almanac.moon_phase(EPH, t_now)
+    return "MPA %d" % phase.degrees
 
 
 @app.get("/time")
