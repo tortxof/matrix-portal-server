@@ -10,6 +10,7 @@ python = "^3.11"
 flask = "^3.0.0"
 skyfield = "^1.46"
 tzdata = "^2023.3"
+gunicorn = "^21.2.0"
 
 
 [build-system]
