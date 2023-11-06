@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.11"
 flask = "^3.0.0"
 skyfield = "^1.46"
+tzdata = "^2023.3"
 
 
 [build-system]

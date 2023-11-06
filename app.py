@@ -1,9 +1,9 @@
 import colorsys
 import datetime
 import secrets
-import time
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from flask import Flask
+from flask import Flask, abort
 from skyfield import almanac
 from skyfield.api import load, wgs84
 
@@ -139,9 +139,14 @@ def get_moon_phase():
     ]
 
 
-@app.get("/time")
-def get_time():
-    return list(time.localtime())
+@app.get("/time/<path:timezone>")
+def get_time(timezone):
+    try:
+        tzinfo = ZoneInfo(timezone)
+    except (ZoneInfoNotFoundError, IsADirectoryError, ValueError):
+        abort(404)
+    now = datetime.datetime.now(tzinfo)
+    return list(now.timetuple())
 
 
 @app.get("/motd")
