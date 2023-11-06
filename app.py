@@ -3,18 +3,13 @@ import datetime
 import secrets
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from flask import Flask, abort
+from flask import Flask, abort, g, request
 from skyfield import almanac
 from skyfield.api import load, wgs84
 
 app = Flask(__name__)
 
-LATITUDE = +34.903
-LONGITUDE = -82.706
-ELEVATION = 328.0
-
 EPH = load("de421.bsp")
-LOCATION = wgs84.latlon(LATITUDE, LONGITUDE)
 
 SUN_COLOR = 0x201000
 MOON_COLOR = 0x001020
@@ -64,27 +59,25 @@ def get_rand_color():
 
 
 def get_next_sun_event(event_index=0):
-    now = datetime.datetime.now().astimezone()
-    timezone = datetime.timezone(now.tzinfo.utcoffset(now))
+    now = datetime.datetime.now(g.tzinfo)
     now_plus = now + datetime.timedelta(days=1.5)
 
     ts = load.timescale()
     t_now = ts.from_datetime(now)
     t_now_plus = ts.from_datetime(now_plus)
 
-    get_sun_up = almanac.sunrise_sunset(EPH, LOCATION)
+    get_sun_up = almanac.sunrise_sunset(EPH, g.location)
     times, events = almanac.find_discrete(t_now, t_now_plus, get_sun_up)
 
     sun_event_str = "SR" if events[event_index] else "SS"
-    sun_event_time = times[event_index].astimezone(timezone) + datetime.timedelta(
+    sun_event_time = times[event_index].astimezone(g.tzinfo) + datetime.timedelta(
         seconds=30
     )
     return "%s %02d:%02d" % (sun_event_str, sun_event_time.hour, sun_event_time.minute)
 
 
 def get_next_moon_event(event_index=0):
-    now = datetime.datetime.now().astimezone()
-    timezone = datetime.timezone(now.tzinfo.utcoffset(now))
+    now = datetime.datetime.now(g.tzinfo)
     now_plus = now + datetime.timedelta(days=1.5)
 
     ts = load.timescale()
@@ -92,12 +85,12 @@ def get_next_moon_event(event_index=0):
     t_now_plus = ts.from_datetime(now_plus)
 
     get_moon_up = almanac.risings_and_settings(
-        EPH, EPH["moon"], LOCATION, radius_degrees=MOON_RADIUS_DEGREES
+        EPH, EPH["moon"], g.location, radius_degrees=MOON_RADIUS_DEGREES
     )
     times, events = almanac.find_discrete(t_now, t_now_plus, get_moon_up)
 
     moon_event_str = "MR" if events[event_index] else "MS"
-    moon_event_time = times[event_index].astimezone(timezone) + datetime.timedelta(
+    moon_event_time = times[event_index].astimezone(g.tzinfo) + datetime.timedelta(
         seconds=30
     )
     return "%s %02d:%02d" % (
@@ -108,25 +101,25 @@ def get_next_moon_event(event_index=0):
 
 
 def get_sun_state():
-    now = datetime.datetime.now().astimezone()
+    now = datetime.datetime.now(g.tzinfo)
     ts = load.timescale()
     t_now = ts.from_datetime(now)
-    sun_is_up = almanac.sunrise_sunset(EPH, LOCATION)(t_now)
+    sun_is_up = almanac.sunrise_sunset(EPH, g.location)(t_now)
     return "Daytime" if sun_is_up else "Nighttime"
 
 
 def get_moon_state():
-    now = datetime.datetime.now().astimezone()
+    now = datetime.datetime.now(g.tzinfo)
     ts = load.timescale()
     t_now = ts.from_datetime(now)
     moon_is_up = almanac.risings_and_settings(
-        EPH, EPH["moon"], LOCATION, radius_degrees=MOON_RADIUS_DEGREES
+        EPH, EPH["moon"], g.location, radius_degrees=MOON_RADIUS_DEGREES
     )(t_now)
     return "Moon up" if moon_is_up else "Moon down"
 
 
 def get_moon_phase():
-    now = datetime.datetime.now().astimezone()
+    now = datetime.datetime.now(g.tzinfo)
     ts = load.timescale()
     t_now = ts.from_datetime(now)
     angle = int(almanac.moon_phase(EPH, t_now).degrees)
@@ -139,13 +132,28 @@ def get_moon_phase():
     ]
 
 
-@app.get("/time/<path:timezone>")
-def get_time(timezone):
+@app.before_request
+def load_timezone():
+    timezone = request.headers.get("X-Timezone", "UTC")
     try:
-        tzinfo = ZoneInfo(timezone)
+        g.tzinfo = ZoneInfo(timezone)
     except (ZoneInfoNotFoundError, IsADirectoryError, ValueError):
         abort(404)
-    now = datetime.datetime.now(tzinfo)
+
+
+@app.before_request
+def load_location():
+    if "X-Location" not in request.headers:
+        abort(400)
+    latitude, longitude = request.headers.get("X-Location").split(",")
+    latitude = float(latitude)
+    longitude = float(longitude)
+    g.location = wgs84.latlon(latitude, longitude)
+
+
+@app.get("/time")
+def get_time():
+    now = datetime.datetime.now(g.tzinfo)
     return list(now.timetuple())
 
 
