@@ -1,18 +1,13 @@
-[tool.poetry]
+[project]
 name = "matrix-portal-server"
 version = "0.1.0"
 description = ""
-authors = ["Daniel Jones <tortxof@gmail.com>"]
+authors = [{ name = "Daniel Jones", email = "tortxof@gmail.com" }]
+requires-python = "~=3.13"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-flask = "^3.0.0"
-skyfield = "^1.46"
-tzdata = "^2023.3"
-gunicorn = "^21.2.0"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+dependencies = [
+    "flask>=3.1.1",
+    "gunicorn>=23.0.0",
+    "skyfield>=1.53",
+    "tzdata>=2025.2",
+]
