@@ -154,7 +154,7 @@ def load_location():
 @app.get("/time")
 def get_time():
     now = datetime.datetime.now(g.tzinfo)
-    return list(now.timetuple())
+    return list(now.timetuple()) + [now.microsecond]
 
 
 @app.get("/motd")
