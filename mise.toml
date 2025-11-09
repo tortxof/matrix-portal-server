@@ -1,2 +1,2 @@
-[tools]
-python = "3.13.3"
+[env]
+UV_MANAGED_PYTHON = "1"
