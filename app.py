@@ -1,11 +1,12 @@
 import colorsys
 import datetime
+import os
 import secrets
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from flask import Flask, abort, g, request
 from skyfield import almanac
 from skyfield.api import load, wgs84
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 app = Flask(__name__)
 
@@ -136,16 +137,18 @@ def get_next_dst_transition(tzinfo, current_time):
     """
     Find the next DST transition for the given timezone.
 
-    Returns a tuple of (next_dst_change, dst_offset_change) where:
+    Returns a tuple of (next_dst_change, new_utc_offset) where:
     - next_dst_change: Unix timestamp (int) of the next transition, or None
-    - dst_offset_change: Offset change in seconds (int), or None
+    - new_utc_offset: New UTC offset in seconds (int) after the transition, or None
 
     Note: Only searches 2 hours ahead since clients poll at least once per hour.
     """
     try:
         # Work in UTC timestamps to avoid timezone ambiguity issues
         current_timestamp = current_time.timestamp()
-        search_end_timestamp = current_timestamp + (2 * 3600) + (15 * 60)  # 2h 15m buffer
+        search_end_timestamp = (
+            current_timestamp + (2 * 3600) + (15 * 60)
+        )  # 2h 15m buffer
 
         # Get current UTC offset
         current_offset = current_time.utcoffset().total_seconds()
@@ -181,8 +184,7 @@ def get_next_dst_transition(tzinfo, current_time):
                 # Only return if transition is within 2 hours from the original current_time
                 time_until_transition = transition_timestamp - current_timestamp
                 if time_until_transition <= 7200:  # 2 hours in seconds
-                    offset_change = int(next_offset - current_offset)
-                    return transition_timestamp, offset_change
+                    return transition_timestamp, int(next_offset)
                 else:
                     return None, None
 
@@ -215,9 +217,19 @@ def load_location():
 
 @app.get("/time")
 def get_time():
-    now = datetime.datetime.now(g.tzinfo)
-    next_dst_change, dst_offset_change = get_next_dst_transition(g.tzinfo, now)
-    return list(now.timetuple()) + [now.microsecond, next_dst_change, dst_offset_change]
+    if os.getenv("OVERRIDE_CURRENT_TIME"):
+        now = datetime.datetime.fromtimestamp(
+            float(os.getenv("OVERRIDE_CURRENT_TIME"))
+        ).astimezone(g.tzinfo)
+    else:
+        now = datetime.datetime.now(g.tzinfo)
+    next_dst_change, new_utc_offset = get_next_dst_transition(g.tzinfo, now)
+    return [
+        int(now.timestamp() * 1000),
+        int(now.tzinfo.utcoffset(now).total_seconds()),
+        next_dst_change * 1000,
+        new_utc_offset,
+    ]
 
 
 @app.get("/motd")
