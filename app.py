@@ -132,6 +132,58 @@ def get_moon_phase():
     ]
 
 
+def get_next_dst_transition(tzinfo, current_time):
+    """
+    Find the next DST transition for the given timezone.
+
+    Returns a tuple of (next_dst_change, dst_offset_change) where:
+    - next_dst_change: Unix timestamp (int) of the next transition, or None
+    - dst_offset_change: Offset change in seconds (int), or None
+    """
+    try:
+        # Search up to 2 years in the future for the next transition
+        search_end = current_time + datetime.timedelta(days=730)
+        search_time = current_time
+
+        # Get current UTC offset
+        current_offset = current_time.utcoffset().total_seconds()
+
+        # Iterate through time to find the next transition
+        # We'll check every 6 hours to find when the UTC offset changes
+        while search_time < search_end:
+            search_time += datetime.timedelta(hours=6)
+            next_offset = search_time.astimezone(tzinfo).utcoffset().total_seconds()
+
+            if next_offset != current_offset:
+                # Found a transition, now narrow it down
+                # Binary search to find the exact transition time
+                low = current_time
+                high = search_time
+
+                while (high - low).total_seconds() > 60:  # Within 1 minute
+                    mid = low + (high - low) / 2
+                    mid_offset = mid.astimezone(tzinfo).utcoffset().total_seconds()
+
+                    if mid_offset == current_offset:
+                        low = mid
+                    else:
+                        high = mid
+
+                # The transition happens at 'high'
+                transition_time = high
+                offset_change = int(next_offset - current_offset)
+                transition_timestamp = int(transition_time.timestamp())
+
+                return transition_timestamp, offset_change
+
+        # No transition found in the next 2 years
+        return None, None
+
+    except (AttributeError, TypeError):
+        # Timezone doesn't support transitions
+        return None, None
+
+
 @app.before_request
 def load_timezone():
     timezone = request.headers.get("X-Timezone", "UTC")
@@ -154,7 +206,8 @@ def load_location():
 @app.get("/time")
 def get_time():
     now = datetime.datetime.now(g.tzinfo)
-    return list(now.timetuple()) + [now.microsecond]
+    next_dst_change, dst_offset_change = get_next_dst_transition(g.tzinfo, now)
+    return list(now.timetuple()) + [now.microsecond, next_dst_change, dst_offset_change]
 
 
 @app.get("/motd")
