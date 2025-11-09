@@ -2,6 +2,7 @@
 """Test script to verify DST transition detection"""
 
 import datetime
+import unittest
 from zoneinfo import ZoneInfo
 
 # Import the function from app.py
@@ -10,40 +11,85 @@ sys.path.insert(0, '/home/tortxof/git/matrix-portal-server')
 from app import get_next_dst_transition
 
 
-def test_timezone(tz_name):
-    """Test DST transition detection for a given timezone"""
-    print(f"\n{'='*60}")
-    print(f"Testing timezone: {tz_name}")
-    print('='*60)
+class TestDSTTransitionDetection(unittest.TestCase):
+    """Test DST transition detection for various timezones"""
 
-    tzinfo = ZoneInfo(tz_name)
-    now = datetime.datetime.now(tzinfo)
+    def test_america_new_york(self):
+        """Test America/New_York timezone (has DST)"""
+        tzinfo = ZoneInfo('America/New_York')
+        now = datetime.datetime.now(tzinfo)
 
-    print(f"Current time: {now}")
-    print(f"Current UTC offset: {now.utcoffset()}")
-    print(f"Is DST: {now.dst()}")
+        next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
 
-    next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
-
-    if next_dst_change is None:
-        print(f"Result: No DST transition found (both fields are None)")
-    else:
-        transition_dt = datetime.datetime.fromtimestamp(next_dst_change, tz=tzinfo)
-        print(f"Next DST change timestamp: {next_dst_change}")
-        print(f"Next DST change datetime: {transition_dt}")
-        print(f"DST offset change: {dst_offset_change} seconds ({dst_offset_change/3600:.1f} hours)")
-
-        if dst_offset_change > 0:
-            print(f"Direction: Spring forward (gaining daylight)")
+        # Should return valid values or None (depending on time of year)
+        if next_dst_change is not None:
+            self.assertIsInstance(next_dst_change, int)
+            self.assertIsInstance(dst_offset_change, int)
+            self.assertIn(dst_offset_change, [3600, -3600])
         else:
-            print(f"Direction: Fall back (losing daylight)")
+            self.assertIsNone(dst_offset_change)
+
+    def test_america_los_angeles(self):
+        """Test America/Los_Angeles timezone (has DST)"""
+        tzinfo = ZoneInfo('America/Los_Angeles')
+        now = datetime.datetime.now(tzinfo)
+
+        next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
+
+        if next_dst_change is not None:
+            self.assertIsInstance(next_dst_change, int)
+            self.assertIsInstance(dst_offset_change, int)
+            self.assertIn(dst_offset_change, [3600, -3600])
+        else:
+            self.assertIsNone(dst_offset_change)
+
+    def test_europe_london(self):
+        """Test Europe/London timezone (has DST)"""
+        tzinfo = ZoneInfo('Europe/London')
+        now = datetime.datetime.now(tzinfo)
+
+        next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
+
+        if next_dst_change is not None:
+            self.assertIsInstance(next_dst_change, int)
+            self.assertIsInstance(dst_offset_change, int)
+            self.assertIn(dst_offset_change, [3600, -3600])
+        else:
+            self.assertIsNone(dst_offset_change)
+
+    def test_utc(self):
+        """Test UTC timezone (no DST)"""
+        tzinfo = ZoneInfo('UTC')
+        now = datetime.datetime.now(tzinfo)
+
+        next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
+
+        # UTC never has DST transitions
+        self.assertIsNone(next_dst_change)
+        self.assertIsNone(dst_offset_change)
+
+    def test_america_phoenix(self):
+        """Test America/Phoenix timezone (no DST - Arizona)"""
+        tzinfo = ZoneInfo('America/Phoenix')
+        now = datetime.datetime.now(tzinfo)
+
+        next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
+
+        # Arizona doesn't observe DST
+        self.assertIsNone(next_dst_change)
+        self.assertIsNone(dst_offset_change)
+
+    def test_asia_tokyo(self):
+        """Test Asia/Tokyo timezone (no DST)"""
+        tzinfo = ZoneInfo('Asia/Tokyo')
+        now = datetime.datetime.now(tzinfo)
+
+        next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
+
+        # Japan doesn't observe DST
+        self.assertIsNone(next_dst_change)
+        self.assertIsNone(dst_offset_change)
 
 
-if __name__ == "__main__":
-    # Test various timezones
-    test_timezone("America/New_York")  # Has DST
-    test_timezone("America/Los_Angeles")  # Has DST
-    test_timezone("Europe/London")  # Has DST
-    test_timezone("UTC")  # No DST
-    test_timezone("America/Phoenix")  # No DST (Arizona)
-    test_timezone("Asia/Tokyo")  # No DST
+if __name__ == '__main__':
+    unittest.main()
