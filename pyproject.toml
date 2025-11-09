@@ -3,7 +3,7 @@ name = "matrix-portal-server"
 version = "0.1.0"
 description = ""
 authors = [{ name = "Daniel Jones", email = "tortxof@gmail.com" }]
-requires-python = "~=3.13"
+requires-python = "~=3.13.0"
 readme = "README.md"
 dependencies = [
     "flask>=3.1.1",
