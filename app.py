@@ -227,7 +227,7 @@ def get_time():
     return [
         int(now.timestamp() * 1000),
         int(now.tzinfo.utcoffset(now).total_seconds()),
-        next_dst_change * 1000,
+        next_dst_change * 1000 if next_dst_change is not None else None,
         new_utc_offset,
     ]
 
