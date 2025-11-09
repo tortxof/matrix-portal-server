@@ -139,19 +139,21 @@ def get_next_dst_transition(tzinfo, current_time):
     Returns a tuple of (next_dst_change, dst_offset_change) where:
     - next_dst_change: Unix timestamp (int) of the next transition, or None
     - dst_offset_change: Offset change in seconds (int), or None
+
+    Note: Only searches 2 hours ahead since clients poll at least once per hour.
     """
     try:
-        # Search up to 2 years in the future for the next transition
-        search_end = current_time + datetime.timedelta(days=730)
+        # Search up to 2 hours in the future for the next transition
+        search_end = current_time + datetime.timedelta(hours=2)
         search_time = current_time
 
         # Get current UTC offset
         current_offset = current_time.utcoffset().total_seconds()
 
         # Iterate through time to find the next transition
-        # We'll check every 6 hours to find when the UTC offset changes
+        # Check every 15 minutes to find when the UTC offset changes
         while search_time < search_end:
-            search_time += datetime.timedelta(hours=6)
+            search_time += datetime.timedelta(minutes=15)
             next_offset = search_time.astimezone(tzinfo).utcoffset().total_seconds()
 
             if next_offset != current_offset:
@@ -176,7 +178,7 @@ def get_next_dst_transition(tzinfo, current_time):
 
                 return transition_timestamp, offset_change
 
-        # No transition found in the next 2 years
+        # No transition found in the next 2 hours
         return None, None
 
     except (AttributeError, TypeError):
