@@ -143,40 +143,48 @@ def get_next_dst_transition(tzinfo, current_time):
     Note: Only searches 2 hours ahead since clients poll at least once per hour.
     """
     try:
-        # Search up to 2 hours in the future for the next transition
-        search_end = current_time + datetime.timedelta(hours=2)
-        search_time = current_time
+        # Work in UTC timestamps to avoid timezone ambiguity issues
+        current_timestamp = current_time.timestamp()
+        search_end_timestamp = current_timestamp + (2 * 3600) + (15 * 60)  # 2h 15m buffer
 
         # Get current UTC offset
         current_offset = current_time.utcoffset().total_seconds()
 
         # Iterate through time to find the next transition
-        # Check every 15 minutes to find when the UTC offset changes
-        while search_time < search_end:
-            search_time += datetime.timedelta(minutes=15)
-            next_offset = search_time.astimezone(tzinfo).utcoffset().total_seconds()
+        # Check every 15 minutes (900 seconds) to find when the UTC offset changes
+        search_timestamp = current_timestamp
+
+        while search_timestamp < search_end_timestamp:
+            search_timestamp += 900  # 15 minutes in seconds
+            search_time = datetime.datetime.fromtimestamp(search_timestamp, tz=tzinfo)
+            next_offset = search_time.utcoffset().total_seconds()
 
             if next_offset != current_offset:
                 # Found a transition, now narrow it down
-                # Binary search to find the exact transition time
-                low = current_time
-                high = search_time
+                # Binary search to find the exact transition time (in timestamps)
+                low_ts = search_timestamp - 900  # 15 minutes before
+                high_ts = search_timestamp
 
-                while (high - low).total_seconds() > 60:  # Within 1 minute
-                    mid = low + (high - low) / 2
-                    mid_offset = mid.astimezone(tzinfo).utcoffset().total_seconds()
+                while (high_ts - low_ts) > 1:  # Within 1 second
+                    mid_ts = (low_ts + high_ts) / 2
+                    mid_time = datetime.datetime.fromtimestamp(mid_ts, tz=tzinfo)
+                    mid_offset = mid_time.utcoffset().total_seconds()
 
                     if mid_offset == current_offset:
-                        low = mid
+                        low_ts = mid_ts
                     else:
-                        high = mid
+                        high_ts = mid_ts
 
-                # The transition happens at 'high'
-                transition_time = high
-                offset_change = int(next_offset - current_offset)
-                transition_timestamp = int(transition_time.timestamp())
+                # The transition happens at 'high_ts'
+                transition_timestamp = int(high_ts)
 
-                return transition_timestamp, offset_change
+                # Only return if transition is within 2 hours from the original current_time
+                time_until_transition = transition_timestamp - current_timestamp
+                if time_until_transition <= 7200:  # 2 hours in seconds
+                    offset_change = int(next_offset - current_offset)
+                    return transition_timestamp, offset_change
+                else:
+                    return None, None
 
         # No transition found in the next 2 hours
         return None, None
