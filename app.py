@@ -207,9 +207,7 @@ def load_timezone():
 
 @app.before_request
 def load_location():
-    if "X-Location" not in request.headers:
-        abort(400)
-    latitude, longitude = request.headers.get("X-Location").split(",")
+    latitude, longitude = request.headers.get("X-Location", "40.7,-74.0").split(",")
     latitude = float(latitude)
     longitude = float(longitude)
     g.location = wgs84.latlon(latitude, longitude)
