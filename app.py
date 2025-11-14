@@ -219,6 +219,12 @@ def add_cors_headers(response):
     return response
 
 
+@app.after_request
+def add_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.get("/time")
 def get_time():
     if os.getenv("OVERRIDE_CURRENT_TIME"):
