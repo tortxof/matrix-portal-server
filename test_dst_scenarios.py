@@ -6,7 +6,8 @@ import unittest
 from zoneinfo import ZoneInfo
 
 import sys
-sys.path.insert(0, '/home/tortxof/git/matrix-portal-server')
+
+sys.path.insert(0, "/home/tortxof/git/matrix-portal-server")
 from app import get_next_dst_transition
 
 
@@ -15,8 +16,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_us_spring_forward_2024(self):
         """US Spring forward 2024 (March 10, 2024 at 2:00 AM)"""
-        tzinfo = ZoneInfo('America/New_York')
-        test_time = datetime.datetime.fromisoformat("2024-03-09T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("America/New_York")
+        test_time = datetime.datetime.fromisoformat("2024-03-09T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -28,8 +31,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_us_fall_back_2024(self):
         """US Fall back 2024 (November 3, 2024 at 2:00 AM)"""
-        tzinfo = ZoneInfo('America/New_York')
-        test_time = datetime.datetime.fromisoformat("2024-11-02T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("America/New_York")
+        test_time = datetime.datetime.fromisoformat("2024-11-02T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -40,8 +45,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_eu_spring_forward_2024(self):
         """EU Spring forward 2024 (March 31, 2024 at 1:00 AM UTC)"""
-        tzinfo = ZoneInfo('Europe/London')
-        test_time = datetime.datetime.fromisoformat("2024-03-30T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("Europe/London")
+        test_time = datetime.datetime.fromisoformat("2024-03-30T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -52,8 +59,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_eu_fall_back_2024(self):
         """EU Fall back 2024 (October 27, 2024 at 1:00 AM UTC)"""
-        tzinfo = ZoneInfo('Europe/London')
-        test_time = datetime.datetime.fromisoformat("2024-10-26T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("Europe/London")
+        test_time = datetime.datetime.fromisoformat("2024-10-26T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -64,8 +73,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_australia_spring_forward_2024(self):
         """Australia Spring forward 2024 (October 6, 2024)"""
-        tzinfo = ZoneInfo('Australia/Sydney')
-        test_time = datetime.datetime.fromisoformat("2024-10-05T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("Australia/Sydney")
+        test_time = datetime.datetime.fromisoformat("2024-10-05T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -76,8 +87,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_australia_fall_back_2025(self):
         """Australia Fall back 2025 (April 6, 2025)"""
-        tzinfo = ZoneInfo('Australia/Sydney')
-        test_time = datetime.datetime.fromisoformat("2025-04-05T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("Australia/Sydney")
+        test_time = datetime.datetime.fromisoformat("2025-04-05T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -88,8 +101,10 @@ class TestDSTScenarios(unittest.TestCase):
 
     def test_no_dst_timezone_scenario(self):
         """Timezone without DST (America/Phoenix)"""
-        tzinfo = ZoneInfo('America/Phoenix')
-        test_time = datetime.datetime.fromisoformat("2024-03-09T12:00:00").replace(tzinfo=tzinfo)
+        tzinfo = ZoneInfo("America/Phoenix")
+        test_time = datetime.datetime.fromisoformat("2024-03-09T12:00:00").replace(
+            tzinfo=tzinfo
+        )
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, test_time)
 
@@ -98,5 +113,5 @@ class TestDSTScenarios(unittest.TestCase):
         self.assertIsNone(dst_offset_change)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

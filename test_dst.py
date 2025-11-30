@@ -7,7 +7,8 @@ from zoneinfo import ZoneInfo
 
 # Import the function from app.py
 import sys
-sys.path.insert(0, '/home/tortxof/git/matrix-portal-server')
+
+sys.path.insert(0, "/home/tortxof/git/matrix-portal-server")
 from app import get_next_dst_transition
 
 
@@ -16,7 +17,7 @@ class TestDSTTransitionDetection(unittest.TestCase):
 
     def test_america_new_york(self):
         """Test America/New_York timezone (has DST)"""
-        tzinfo = ZoneInfo('America/New_York')
+        tzinfo = ZoneInfo("America/New_York")
         now = datetime.datetime.now(tzinfo)
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
@@ -31,7 +32,7 @@ class TestDSTTransitionDetection(unittest.TestCase):
 
     def test_america_los_angeles(self):
         """Test America/Los_Angeles timezone (has DST)"""
-        tzinfo = ZoneInfo('America/Los_Angeles')
+        tzinfo = ZoneInfo("America/Los_Angeles")
         now = datetime.datetime.now(tzinfo)
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
@@ -45,7 +46,7 @@ class TestDSTTransitionDetection(unittest.TestCase):
 
     def test_europe_london(self):
         """Test Europe/London timezone (has DST)"""
-        tzinfo = ZoneInfo('Europe/London')
+        tzinfo = ZoneInfo("Europe/London")
         now = datetime.datetime.now(tzinfo)
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
@@ -59,7 +60,7 @@ class TestDSTTransitionDetection(unittest.TestCase):
 
     def test_utc(self):
         """Test UTC timezone (no DST)"""
-        tzinfo = ZoneInfo('UTC')
+        tzinfo = ZoneInfo("UTC")
         now = datetime.datetime.now(tzinfo)
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
@@ -70,7 +71,7 @@ class TestDSTTransitionDetection(unittest.TestCase):
 
     def test_america_phoenix(self):
         """Test America/Phoenix timezone (no DST - Arizona)"""
-        tzinfo = ZoneInfo('America/Phoenix')
+        tzinfo = ZoneInfo("America/Phoenix")
         now = datetime.datetime.now(tzinfo)
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
@@ -81,7 +82,7 @@ class TestDSTTransitionDetection(unittest.TestCase):
 
     def test_asia_tokyo(self):
         """Test Asia/Tokyo timezone (no DST)"""
-        tzinfo = ZoneInfo('Asia/Tokyo')
+        tzinfo = ZoneInfo("Asia/Tokyo")
         now = datetime.datetime.now(tzinfo)
 
         next_dst_change, dst_offset_change = get_next_dst_transition(tzinfo, now)
@@ -91,5 +92,5 @@ class TestDSTTransitionDetection(unittest.TestCase):
         self.assertIsNone(dst_offset_change)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
