@@ -3,10 +3,6 @@
 
 import unittest
 
-# Import Flask app
-import sys
-
-sys.path.insert(0, "/home/tortxof/git/matrix-portal-server")
 from app import app
 
 

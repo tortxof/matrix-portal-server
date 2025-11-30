@@ -5,9 +5,6 @@ import datetime
 import unittest
 from zoneinfo import ZoneInfo
 
-import sys
-
-sys.path.insert(0, "/home/tortxof/git/matrix-portal-server")
 from app import get_next_dst_transition
 
 
