@@ -133,7 +133,9 @@ def get_moon_phase():
     ]
 
 
-def get_next_dst_transition(tzinfo, current_time):
+def get_next_dst_transition(
+    tzinfo: ZoneInfo, current_time: datetime.datetime
+) -> tuple[int, int] | tuple[None, None]:
     """
     Find the next DST transition for the given timezone.
 
