@@ -32,22 +32,26 @@ class TestTimeEndpoint(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json
 
-        # Verify response has 12 fields
-        self.assertEqual(len(data), 12, "Response should have 12 fields")
+        # Verify response has 4 fields: [timestamp_ms, utc_offset, next_dst_change_ms, new_utc_offset]
+        self.assertEqual(len(data), 4, "Response should have 4 fields")
 
-        # Verify basic time fields are integers
-        for i in range(10):
-            self.assertIsInstance(data[i], int, f"Field {i} should be an integer")
+        # Verify timestamp is in milliseconds (should be 13 digits)
+        self.assertIsInstance(data[0], int, "Timestamp should be an integer")
+        self.assertGreater(data[0], 1000000000000, "Timestamp should be in milliseconds")
+
+        # Verify UTC offset is integer
+        self.assertIsInstance(data[1], int, "UTC offset should be an integer")
 
         # Verify DST fields are either int or None
-        self.assertTrue(data[10] is None or isinstance(data[10], int),
+        self.assertTrue(data[2] is None or isinstance(data[2], int),
                        "next_dst_change should be int or None")
-        self.assertTrue(data[11] is None or isinstance(data[11], int),
-                       "dst_offset_change should be int or None")
+        self.assertTrue(data[3] is None or isinstance(data[3], int),
+                       "new_utc_offset should be int or None")
 
-        # If DST transition exists, verify offset change is valid
-        if data[10] is not None:
-            self.assertIn(data[11], [3600, -3600],
+        # If DST transition exists, verify it's in milliseconds and offset change is valid
+        if data[2] is not None:
+            self.assertGreater(data[2], 1000000000000, "DST change should be in milliseconds")
+            self.assertIn(data[3], [3600, -3600],
                          "DST offset change should be ±3600 seconds")
 
         return data
@@ -69,15 +73,15 @@ class TestTimeEndpoint(unittest.TestCase):
         """Test /time endpoint with UTC timezone (no DST)"""
         data = self._test_timezone("UTC")
         # UTC should never have DST transitions
-        self.assertIsNone(data[10], "UTC should have no DST transition")
-        self.assertIsNone(data[11], "UTC should have no DST offset change")
+        self.assertIsNone(data[2], "UTC should have no DST transition")
+        self.assertIsNone(data[3], "UTC should have no DST offset change")
 
     def test_america_phoenix(self):
         """Test /time endpoint with America/Phoenix timezone (no DST)"""
         data = self._test_timezone("America/Phoenix")
         # Phoenix doesn't observe DST
-        self.assertIsNone(data[10], "Phoenix should have no DST transition")
-        self.assertIsNone(data[11], "Phoenix should have no DST offset change")
+        self.assertIsNone(data[2], "Phoenix should have no DST transition")
+        self.assertIsNone(data[3], "Phoenix should have no DST offset change")
 
     def test_australia_sydney(self):
         """Test /time endpoint with Australia/Sydney timezone"""
@@ -95,14 +99,17 @@ class TestTimeEndpoint(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_missing_location(self):
-        """Test /time endpoint without location header"""
+        """Test /time endpoint without location header (uses default NYC location)"""
         response = self.client.get(
             '/time',
             headers={
                 'X-Timezone': 'America/New_York'
             }
         )
-        self.assertEqual(response.status_code, 400)
+        # Location defaults to NYC (40.7,-74.0), so should return 200
+        self.assertEqual(response.status_code, 200)
+        data = response.json
+        self.assertEqual(len(data), 4, "Response should have 4 fields")
 
 
 if __name__ == '__main__':
